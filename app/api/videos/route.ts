@@ -10,13 +10,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: { id: userId }
     });
 
     if (!user) {
-      console.log('User not found:', userId);
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      user = await prisma.user.create({
+        data: {
+          id: userId,
+          username: null,
+          email: null
+        }
+      });
     }
 
     const formData = await req.formData();
@@ -37,7 +42,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(video);
   } catch (error) {
-    console.error('Error uploading video:', error instanceof Error ? error.message : 'Unknown error');
+    console.error('Error:', error);
     return NextResponse.json({ error: 'Error uploading video' }, { status: 500 });
   }
 }

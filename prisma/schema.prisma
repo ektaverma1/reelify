@@ -25,6 +25,8 @@ model User {
   interactions  Interaction[]
   followers     Follow[]      @relation("following")
   following     Follow[]      @relation("follower")
+  likes         Like[]
+  comments      Comment[]
 }
 
 model Video {
@@ -40,6 +42,8 @@ model Video {
   updatedAt     DateTime      @updatedAt
   viewCount     Int           @default(0)
   interactions  Interaction[]
+  likes         Like[]
+  comments      Comment[]
   
   @@index([userId])
 }
@@ -69,4 +73,30 @@ model Follow {
   @@unique([followerId, followingId])
   @@index([followerId])
   @@index([followingId])
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  userId    String
+  videoId   String
+  user      User     @relation(fields: [userId], references: [id])
+  video     Video    @relation(fields: [videoId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, videoId])
+  @@index([userId])
+  @@index([videoId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  userId    String
+  videoId   String
+  user      User     @relation(fields: [userId], references: [id])
+  video     Video    @relation(fields: [videoId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([videoId])
 }

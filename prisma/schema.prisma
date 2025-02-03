@@ -40,11 +40,13 @@ model Video {
   user          User          @relation(fields: [userId], references: [id])
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
-  viewCount     Int           @default(0)
-  interactions  Interaction[]
+  totalViews    Int           @default(0)
+  totalWatchTime Float        @default(0)
+  watchHistory  WatchHistory[]
   likes         Like[]
   comments      Comment[]
-  
+  interactions  Interaction[]
+
   @@index([userId])
 }
 
@@ -97,6 +99,20 @@ model Comment {
   video     Video    @relation(fields: [videoId], references: [id])
   createdAt DateTime @default(now())
 
+  @@index([userId])
+  @@index([videoId])
+}
+
+model WatchHistory {
+  id          String   @id @default(cuid())
+  userId      String
+  videoId     String
+  watchTime   Float
+  viewCount   Int      @default(1)
+  lastWatched DateTime @default(now())
+  video       Video    @relation(fields: [videoId], references: [id])
+
+  @@unique([userId, videoId])
   @@index([userId])
   @@index([videoId])
 }

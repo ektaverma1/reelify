@@ -52,22 +52,59 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url)
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
+    const sort = searchParams.get('sort') || 'latest'
     const skip = (page - 1) * limit
 
-    const videos = await prisma.video.findMany({
-      skip,
-      take: limit,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        user: {
-          select: {
-            id: true,
-            username: true,
-            avatarUrl: true,
+    let videos;
+
+    if (sort === "recommended") {
+      videos = await prisma.video.findMany({
+        skip,
+        take: limit,
+        orderBy: [
+          {
+            totalViews: 'desc'
+          },
+          {
+            totalWatchTime: 'desc'
+          },
+          {
+            createdAt: 'desc'
+          }
+        ],
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              avatarUrl: true,
+            },
           },
         },
-      },
-    })
+      });
+    } else {
+      videos = await prisma.video.findMany({
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              avatarUrl: true,
+            },
+          },
+        },
+      });
+    }
+
+    // logging to verify the order
+    console.log("Returning videos in order:", videos.map(v => ({
+      title: v.title,
+      totalViews: v.totalViews,
+      totalWatchTime: v.totalWatchTime
+    })));
 
     return NextResponse.json(videos)
   } catch (error) {
